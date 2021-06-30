@@ -18,6 +18,7 @@
 #include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Float64.h>
 #include <std_srvs/SetBool.h>
@@ -94,6 +95,9 @@ class Controller
   /// \brief publisher to send cmd_vel
  private: ros::Publisher velPub;
 
+  /// \brief publisher to deploy a breadcrumb
+ private: ros::Publisher breadcrumbPub;
+
   /// \brief List of service clients to control flashlight(s).
  private: std::vector<ros::ServiceClient> flashlightSrvList;
 
@@ -124,6 +128,8 @@ class Controller
   ros::Timer active_comms_timer;
 
   ros::Timer neighbor_timer;
+
+  ros::Timer breadcrumb_timer;
 };
 
 /////////////////////////////////////////////////
@@ -154,6 +160,9 @@ Controller::Controller(const std::string &_name,
 
   this->velPub
       = this->n.advertise<geometry_msgs::Twist>(_name + "/cmd_vel", 1);
+
+  this->breadcrumbPub
+      = this->n.advertise<std_msgs::Empty>(_name + "/breadcrumb/deploy", 1);
 
   std::vector<std::string> flashlightSrvSuffixList;
   this->n.getParam(
@@ -261,6 +270,11 @@ Controller::Controller(const std::string &_name,
     }
   };
 
+  auto breadcrumbCb = [this](const ros::TimerEvent&) {
+    std_msgs::Empty msg;
+    this->breadcrumbPub.publish(msg);
+  };
+
   double beacon_interval;
   pnh.param("beacon_interval", beacon_interval, 1.0);
   this->client->StartBeaconInterval(ros::Duration(beacon_interval));
@@ -269,6 +283,11 @@ Controller::Controller(const std::string &_name,
   pnh.param("neighbor_publish_rate", neighbor_pub_rate, 5.0);
   neighbor_timer = pnh.createTimer(ros::Duration(1.0/neighbor_pub_rate),
       neighborCb);
+
+  double breadcrumb_pub_rate;
+  pnh.param("breadcrumb_publish_rate", breadcrumb_pub_rate, 1.0);
+  breadcrumb_timer = pnh.createTimer(ros::Duration(1.0/breadcrumb_pub_rate),
+      breadcrumbCb);
 }
 
 /////////////////////////////////////////////////
