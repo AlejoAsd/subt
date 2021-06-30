@@ -604,7 +604,7 @@
 
     max_breadcrumbs = 0
     if _config == "7" or _config == "8"
-      max_breadcrumbs = 12
+      max_breadcrumbs = -12
     end
 
     z = _z + 0.2

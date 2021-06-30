@@ -96,7 +96,7 @@ WORKDIR /home/$USERNAME
 RUN mkdir -p subt_ws/src \
  && cd subt_ws/src \
  && git config --global http.postBuffer 1048576000 \
- && git clone https://github.com/osrf/subt
+ && git clone https://github.com/osrf/subt -b infinite_breadcrumb
 
 # Install dependencies
 RUN . /opt/ros/melodic/setup.sh \
